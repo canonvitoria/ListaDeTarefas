@@ -1,75 +1,80 @@
 const inputTask = document.querySelector('.input-newTask');
-const botao = document.querySelector('.btn-addTask');
-const task = document.querySelector('.tasks')
+const btnTask = document.querySelector('.btn-addTask');
+const tasksList = document.querySelector('.tasks');
 
-inputTask.addEventListener('keypress', function(event) {
-    if(event.keyCode === 13) {
-        if (!inputTask.value) return;
-        getTask(inputTask.value);
-    }
-});
-
-function getLi() {
+function createLi() {
     const li = document.createElement('li');
     return li;
+}
+
+function createDeleteButton(li) {
+    const btnDelete = document.createElement('button');
+    btnDelete.innerText = 'Apagar';
+    btnDelete.setAttribute('class', 'delete');
+    btnDelete.setAttribute('title', 'Apagar esta tarefa');
+    li.appendChild(btnDelete);
 }
 
 function cleanInput() {
     inputTask.value = '';
     inputTask.focus();
-};
-
-function getButtonDelete(li) {
-    li.innerText += ' ';
-    const buttonDelete = document.createElement('button');
-    buttonDelete.innerText= 'APAGAR';
-    buttonDelete.setAttribute('class', 'delete');
-    li.appendChild(buttonDelete);
 }
 
-function getTask(textInput) {
-    const li = getLi();
-    li.innerText = textInput;
-    task.appendChild(li);
-    cleanInput();
-    getButtonDelete(li);
-    salveTasks();
-};
-
-function salveTasks() {
-    const liTasks = task.querySelectorAll('li');
-    const listTasks = [];
+function saveTasks() {
+    const liTasks = tasksList.querySelectorAll('li');
+    const listOfTasks = [];
 
     for (let task of liTasks) {
-    let taskText = task.innerText;
-    taskText = taskText.replace('delete', '').trim();
-    listTasks.push(taskText);
+        let taskText = task.innerText;
+        taskText = taskText.replace('Apagar', '').trim();
+        listOfTasks.push(taskText);
     }
 
-    const tasksJSON = JSON.stringify(listTasks);
+    const tasksJSON = JSON.stringify(listOfTasks);
     localStorage.setItem('tasks', tasksJSON);
-};
+}
 
-function addTasksSalvas() {
-    const task = localStorage.getItem('tasks');
-    const  listTasks = JSON.parse(task);
+function createTask(textInput) {
+    const li = createLi();
+    li.innerText = textInput;
+    tasksList.appendChild(li);
+    createDeleteButton(li);
+    saveTasks();
+}
+
+function addSavedTasks() {
+    const tasks = localStorage.getItem('tasks');
+    const listOfTasks = JSON.parse(tasks) || [];
     
-    for (let  task of listTasks) {
-        getTask(task);
+    for (let task of listOfTasks) {
+        createTask(task);
     }
 }
-addTasksSalvas();
 
-botao.addEventListener('click', function(event) {
-    if (!inputTask.value) return;
-    getTask(inputTask.value);
+// Eventos
+inputTask.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        if (!inputTask.value) return;
+        createTask(inputTask.value);
+        cleanInput();
+    }
 });
 
-document.addEventListener('click', function(event) {
-    const elemento = event.target;
+btnTask.addEventListener('click', function() {
+    if (!inputTask.value) return;
+    createTask(inputTask.value);
+    cleanInput();
+});
+
+document.addEventListener('click', function(e) {
+    const el = e.target;
     
-    if (elemento.classList.contains('delete')) {
-        elemento.parentElement.remove();
-        salveTasks();
+    if (el.classList.contains('delete')) {
+        // Remove o elemento pai do botão (o li)
+        el.parentElement.remove();
+        saveTasks();
     }
-})
+});
+
+// Inicializa
+addSavedTasks();
